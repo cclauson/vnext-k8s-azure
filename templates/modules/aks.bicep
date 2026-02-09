@@ -19,7 +19,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2024-01-01' = {
         osType: 'Linux'
         enableAutoScaling: true
         minCount: 1
-        maxCount: 3
+        maxCount: 10
       }
     ]
     networkProfile: {
