@@ -48,6 +48,51 @@ jobs:
             -AksName ${{ steps.unique_names.outputs.aksName }}
         shell: pwsh
 
+      - name: Get NGINX Ingress External IP
+        id: nginx_ip
+        run: |
+          $externalIp = kubectl get svc ingress-nginx-controller `
+              --namespace ingress-nginx `
+              -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+          Write-Host "NGINX Ingress external IP: $externalIp"
+          echo "NGINX_IP=$externalIp" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        shell: pwsh
+
+      - name: Deploy Front Door
+        run: |
+          az deployment group create `
+            --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} `
+            --template-file ./templates/front-door-resources.bicep `
+            --parameters endpointName=${{ steps.unique_names.outputs.frontDoorEndpointName }} `
+                         customDomainName=${{ vars.CUSTOM_DOMAIN_NAME }} `
+                         originHostName=${{ steps.nginx_ip.outputs.NGINX_IP }}
+        shell: pwsh
+
+      - name: Create CNAME Record
+        run: |
+          $subdomain = "${{ vars.CUSTOM_DOMAIN_NAME }}".Split('.')[0]
+          $afdHostName = "${{ steps.unique_names.outputs.frontDoorEndpointName }}.z01.azurefd.net"
+          az network dns record-set cname set-record `
+            --resource-group ${{ vars.DNS_ZONE_RESOURCE_GROUP }} `
+            --zone-name ${{ vars.DNS_ZONE_NAME }} `
+            --record-set-name $subdomain `
+            --cname $afdHostName
+        shell: pwsh
+
+      - name: Configure AFD Custom Domain DNS Validation
+        run: |
+          $customDomain = "${{ vars.CUSTOM_DOMAIN_NAME }}"
+          $afdCustomDomainName = $customDomain -replace '\.', '-'
+          $subdomain = $customDomain.Split('.')[0]
+          ./tools/SetAfdDnsValidation.ps1 `
+            -ResourceGroup ${{ vars.AZURE_RESOURCE_GROUP }} `
+            -FrontDoorProfileName MyFrontDoor `
+            -CustomDomainName $afdCustomDomainName `
+            -DnsZoneName ${{ vars.DNS_ZONE_NAME }} `
+            -DnsZoneResourceGroup ${{ vars.DNS_ZONE_RESOURCE_GROUP }} `
+            -Subdomain $subdomain
+        shell: pwsh
+
       - name: Create App Namespace
         run: |
           kubectl apply -f ./k8s/namespace.yaml
