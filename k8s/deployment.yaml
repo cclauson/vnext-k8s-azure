@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vnext-app
+  namespace: vnext-app
+  labels:
+    app: vnext-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vnext-app
+  template:
+    metadata:
+      labels:
+        app: vnext-app
+    spec:
+      containers:
+        - name: vnext-app
+          image: __ACR_LOGIN_SERVER__/vnext-app:__TAG__
+          ports:
+            - containerPort: 3000
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
