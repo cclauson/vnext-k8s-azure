@@ -35,10 +35,16 @@ jobs:
       - name: Login to ACR
         run: az acr login --name ${{ steps.unique_names.outputs.acrName }}
 
-      - name: Build and Push Docker Image
+      - name: Build and Push API Image
         run: |
-          TAG="${{ steps.acr_info.outputs.ACR_LOGIN_SERVER }}/vnext-app:${{ github.sha }}"
-          docker build -t "$TAG" ./app
+          TAG="${{ steps.acr_info.outputs.ACR_LOGIN_SERVER }}/vnext-api:${{ github.sha }}"
+          docker build -t "$TAG" ./api
+          docker push "$TAG"
+
+      - name: Build and Push UX Image
+        run: |
+          TAG="${{ steps.acr_info.outputs.ACR_LOGIN_SERVER }}/vnext-ux:${{ github.sha }}"
+          docker build -t "$TAG" ./ux
           docker push "$TAG"
 
       - name: Get AKS Credentials
@@ -50,12 +56,20 @@ jobs:
 
       - name: Deploy to AKS
         run: |
+          kubectl apply -f ./k8s/namespace.yaml
           sed -e "s|__ACR_LOGIN_SERVER__|${{ steps.acr_info.outputs.ACR_LOGIN_SERVER }}|g" \
               -e "s|__TAG__|${{ github.sha }}|g" \
-              ./k8s/deployment.yaml | kubectl apply -f -
-          kubectl apply -f ./k8s/service.yaml
+              ./k8s/api-deployment.yaml | kubectl apply -f -
+          sed -e "s|__ACR_LOGIN_SERVER__|${{ steps.acr_info.outputs.ACR_LOGIN_SERVER }}|g" \
+              -e "s|__TAG__|${{ github.sha }}|g" \
+              ./k8s/ux-deployment.yaml | kubectl apply -f -
+          kubectl apply -f ./k8s/api-service.yaml
+          kubectl apply -f ./k8s/ux-service.yaml
+          kubectl apply -f ./k8s/api-hpa.yaml
+          kubectl apply -f ./k8s/ux-hpa.yaml
           kubectl apply -f ./k8s/ingress.yaml
-          kubectl apply -f ./k8s/hpa.yaml
 
-      - name: Wait for Rollout
-        run: kubectl rollout status deployment/vnext-app -n vnext-app --timeout=120s
+      - name: Wait for Rollouts
+        run: |
+          kubectl rollout status deployment/vnext-api -n vnext-app --timeout=120s
+          kubectl rollout status deployment/vnext-ux -n vnext-app --timeout=120s

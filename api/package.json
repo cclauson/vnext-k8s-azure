@@ -1,5 +1,5 @@
 {
-  "name": "vnext-k8s-azure",
+  "name": "vnext-api",
   "version": "1.0.0",
   "private": true,
   "scripts": {
