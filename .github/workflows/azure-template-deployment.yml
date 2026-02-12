@@ -26,6 +26,12 @@ jobs:
                          resourceGroupLocation=${{ vars.AZURE_LOCATION }}
         shell: pwsh
 
+      - name: Register Resource Providers
+        run: |
+          az provider register --namespace Microsoft.OperationsManagement --wait
+          az provider register --namespace Microsoft.OperationalInsights --wait
+        shell: pwsh
+
       - name: Generate Unique Names
         id: unique_names
         uses: ./.github/actions/create-unique-names
