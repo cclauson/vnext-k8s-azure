@@ -17,6 +17,12 @@ outputs:
   frontDoorEndpointName:
     description: "The name of the Front Door endpoint"
     value: ${{ steps.create_unique_names.outputs.FRONT_DOOR_ENDPOINT_NAME }}
+  logAnalyticsWorkspaceName:
+    description: "The name of the Log Analytics Workspace"
+    value: ${{ steps.create_unique_names.outputs.LOG_ANALYTICS_WORKSPACE_NAME }}
+  applicationInsightsName:
+    description: "The name of the Application Insights resource"
+    value: ${{ steps.create_unique_names.outputs.APPLICATION_INSIGHTS_NAME }}
 runs:
   using: "composite"
   steps:
@@ -33,3 +39,7 @@ runs:
         echo "AKS_NAME=$aksName" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
         $frontDoorEndpointName="afd-${uniqueString}"
         echo "FRONT_DOOR_ENDPOINT_NAME=$frontDoorEndpointName" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        $logAnalyticsWorkspaceName="law-${uniqueString}"
+        echo "LOG_ANALYTICS_WORKSPACE_NAME=$logAnalyticsWorkspaceName" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        $applicationInsightsName="ai-${uniqueString}"
+        echo "APPLICATION_INSIGHTS_NAME=$applicationInsightsName" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append

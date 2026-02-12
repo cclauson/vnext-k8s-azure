@@ -38,7 +38,9 @@ jobs:
             --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} `
             --template-file ./templates/azure-resources.bicep `
             --parameters acrName=${{ steps.unique_names.outputs.acrName }} `
-                         aksName=${{ steps.unique_names.outputs.aksName }}
+                         aksName=${{ steps.unique_names.outputs.aksName }} `
+                         logAnalyticsWorkspaceName=${{ steps.unique_names.outputs.logAnalyticsWorkspaceName }} `
+                         applicationInsightsName=${{ steps.unique_names.outputs.applicationInsightsName }}
         shell: pwsh
 
       - name: Install NGINX Ingress Controller

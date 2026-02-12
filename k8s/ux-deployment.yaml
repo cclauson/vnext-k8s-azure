@@ -23,6 +23,8 @@ spec:
           env:
             - name: INTERNAL_API_URL
               value: "http://vnext-api.vnext-app.svc.cluster.local"
+            - name: APPLICATIONINSIGHTS_CONNECTION_STRING
+              value: "__APPINSIGHTS_CONNECTION_STRING__"
           livenessProbe:
             httpGet:
               path: /health

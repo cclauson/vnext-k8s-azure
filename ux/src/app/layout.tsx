@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import AppInsightsProvider from "../components/AppInsightsProvider";
 
 export const metadata: Metadata = {
   title: "vnext-ux",
@@ -13,7 +14,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <AppInsightsProvider />
+        {children}
+      </body>
     </html>
   );
 }

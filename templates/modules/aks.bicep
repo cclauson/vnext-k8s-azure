@@ -1,6 +1,7 @@
 param aksName string
 param location string = resourceGroup().location
 param acrId string
+param logAnalyticsWorkspaceId string = ''
 
 resource aks 'Microsoft.ContainerService/managedClusters@2024-01-01' = {
   name: aksName
@@ -26,6 +27,14 @@ resource aks 'Microsoft.ContainerService/managedClusters@2024-01-01' = {
       networkPlugin: 'azure'
       loadBalancerSku: 'standard'
     }
+    addonProfiles: logAnalyticsWorkspaceId != '' ? {
+      omsagent: {
+        enabled: true
+        config: {
+          logAnalyticsWorkspaceResourceID: logAnalyticsWorkspaceId
+        }
+      }
+    } : {}
   }
 }
 

@@ -32,6 +32,16 @@ jobs:
             --query loginServer -o tsv)
           echo "ACR_LOGIN_SERVER=$ACR_LOGIN_SERVER" >> $GITHUB_OUTPUT
 
+      - name: Get App Insights Connection String
+        id: appinsights
+        run: |
+          CONNECTION_STRING=$(az resource show \
+            --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+            --resource-type "Microsoft.Insights/components" \
+            --name ${{ steps.unique_names.outputs.applicationInsightsName }} \
+            --query properties.ConnectionString -o tsv)
+          echo "CONNECTION_STRING=$CONNECTION_STRING" >> $GITHUB_OUTPUT
+
       - name: Login to ACR
         run: az acr login --name ${{ steps.unique_names.outputs.acrName }}
 
@@ -44,7 +54,9 @@ jobs:
       - name: Build and Push UX Image
         run: |
           TAG="${{ steps.acr_info.outputs.ACR_LOGIN_SERVER }}/vnext-ux:${{ github.sha }}"
-          docker build -t "$TAG" ./ux
+          docker build \
+            --build-arg NEXT_PUBLIC_APPINSIGHTS_CONNECTION_STRING="${{ steps.appinsights.outputs.CONNECTION_STRING }}" \
+            -t "$TAG" ./ux
           docker push "$TAG"
 
       - name: Get AKS Credentials
@@ -59,9 +71,11 @@ jobs:
           kubectl apply -f ./k8s/namespace.yaml
           sed -e "s|__ACR_LOGIN_SERVER__|${{ steps.acr_info.outputs.ACR_LOGIN_SERVER }}|g" \
               -e "s|__TAG__|${{ github.sha }}|g" \
+              -e "s|__APPINSIGHTS_CONNECTION_STRING__|${{ steps.appinsights.outputs.CONNECTION_STRING }}|g" \
               ./k8s/api-deployment.yaml | kubectl apply -f -
           sed -e "s|__ACR_LOGIN_SERVER__|${{ steps.acr_info.outputs.ACR_LOGIN_SERVER }}|g" \
               -e "s|__TAG__|${{ github.sha }}|g" \
+              -e "s|__APPINSIGHTS_CONNECTION_STRING__|${{ steps.appinsights.outputs.CONNECTION_STRING }}|g" \
               ./k8s/ux-deployment.yaml | kubectl apply -f -
           kubectl apply -f ./k8s/api-service.yaml
           kubectl apply -f ./k8s/ux-service.yaml
