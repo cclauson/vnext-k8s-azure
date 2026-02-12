@@ -85,5 +85,26 @@ jobs:
 
       - name: Wait for Rollouts
         run: |
-          kubectl rollout status deployment/vnext-api -n vnext-app --timeout=120s
-          kubectl rollout status deployment/vnext-ux -n vnext-app --timeout=120s
+          kubectl rollout status deployment/vnext-api -n vnext-app --timeout=300s
+          kubectl rollout status deployment/vnext-ux -n vnext-app --timeout=300s
+
+      - name: Debug Rollout Failure
+        if: failure()
+        run: |
+          echo "=== Pod Status ==="
+          kubectl get pods -n vnext-app -o wide
+          echo ""
+          echo "=== Node Resources ==="
+          kubectl top nodes || true
+          echo ""
+          echo "=== Pod Descriptions ==="
+          kubectl describe pods -n vnext-app
+          echo ""
+          echo "=== Recent Pod Logs (API) ==="
+          kubectl logs -n vnext-app -l app=vnext-api --tail=50 --all-containers || true
+          echo ""
+          echo "=== Recent Pod Logs (UX) ==="
+          kubectl logs -n vnext-app -l app=vnext-ux --tail=50 --all-containers || true
+          echo ""
+          echo "=== Events ==="
+          kubectl get events -n vnext-app --sort-by='.lastTimestamp'
