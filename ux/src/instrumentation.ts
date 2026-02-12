@@ -1,8 +1,8 @@
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
-    const appInsights = await import("applicationinsights");
     if (process.env.APPLICATIONINSIGHTS_CONNECTION_STRING) {
-      appInsights.default
+      const appInsights = require("applicationinsights");
+      appInsights
         .setup(process.env.APPLICATIONINSIGHTS_CONNECTION_STRING)
         .setAutoCollectRequests(true)
         .setAutoCollectPerformance(true, true)
