@@ -5,7 +5,7 @@ export async function register() {
       appInsights.default
         .setup(process.env.APPLICATIONINSIGHTS_CONNECTION_STRING)
         .setAutoCollectRequests(true)
-        .setAutoCollectPerformance(true)
+        .setAutoCollectPerformance(true, true)
         .setAutoCollectExceptions(true)
         .setAutoCollectDependencies(true)
         .setAutoCollectConsole(true)
