@@ -1,4 +1,5 @@
 param serverName string
+@secure()
 param adminPassword string
 param location string = resourceGroup().location
 
