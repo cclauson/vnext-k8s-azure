@@ -30,6 +30,7 @@ jobs:
         run: |
           az provider register --namespace Microsoft.OperationsManagement --wait
           az provider register --namespace Microsoft.OperationalInsights --wait
+          az provider register --namespace Microsoft.DBforPostgreSQL --wait
         shell: pwsh
 
       - name: Generate Unique Names
@@ -46,7 +47,9 @@ jobs:
             --parameters acrName=${{ steps.unique_names.outputs.acrName }} `
                          aksName=${{ steps.unique_names.outputs.aksName }} `
                          logAnalyticsWorkspaceName=${{ steps.unique_names.outputs.logAnalyticsWorkspaceName }} `
-                         applicationInsightsName=${{ steps.unique_names.outputs.applicationInsightsName }}
+                         applicationInsightsName=${{ steps.unique_names.outputs.applicationInsightsName }} `
+                         postgresServerName=${{ steps.unique_names.outputs.postgresServerName }} `
+                         postgresAdminPassword=${{ secrets.POSTGRES_ADMIN_PASSWORD }}
         shell: pwsh
 
       - name: Install NGINX Ingress Controller

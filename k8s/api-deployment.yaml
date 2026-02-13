@@ -23,6 +23,8 @@ spec:
           env:
             - name: APPLICATIONINSIGHTS_CONNECTION_STRING
               value: "__APPINSIGHTS_CONNECTION_STRING__"
+            - name: DATABASE_URL
+              value: "__DATABASE_URL__"
           livenessProbe:
             httpGet:
               path: /health

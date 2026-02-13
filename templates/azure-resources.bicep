@@ -2,6 +2,9 @@ param acrName string
 param aksName string
 param logAnalyticsWorkspaceName string
 param applicationInsightsName string
+param postgresServerName string
+@secure()
+param postgresAdminPassword string
 
 module monitoring 'modules/monitoring.bicep' = {
   name: 'monitoringDeployment'
@@ -24,6 +27,14 @@ module aks 'modules/aks.bicep' = {
     aksName: aksName
     acrId: acr.outputs.acrId
     logAnalyticsWorkspaceId: monitoring.outputs.logAnalyticsWorkspaceId
+  }
+}
+
+module postgresql 'modules/postgresql.bicep' = {
+  name: 'postgresqlDeployment'
+  params: {
+    serverName: postgresServerName
+    adminPassword: postgresAdminPassword
   }
 }
 

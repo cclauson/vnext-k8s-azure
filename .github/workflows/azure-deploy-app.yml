@@ -42,6 +42,16 @@ jobs:
             --query properties.ConnectionString -o tsv)
           echo "CONNECTION_STRING=$CONNECTION_STRING" >> $GITHUB_OUTPUT
 
+      - name: Get PostgreSQL Connection String
+        id: postgres
+        run: |
+          FQDN=$(az postgres flexible-server show \
+            --name ${{ steps.unique_names.outputs.postgresServerName }} \
+            --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+            --query fullyQualifiedDomainName -o tsv)
+          DATABASE_URL="postgresql://pgadmin:${{ secrets.POSTGRES_ADMIN_PASSWORD }}@${FQDN}:5432/vnextdb?sslmode=require"
+          echo "DATABASE_URL=$DATABASE_URL" >> $GITHUB_OUTPUT
+
       - name: Login to ACR
         run: az acr login --name ${{ steps.unique_names.outputs.acrName }}
 
@@ -72,6 +82,7 @@ jobs:
           sed -e "s|__ACR_LOGIN_SERVER__|${{ steps.acr_info.outputs.ACR_LOGIN_SERVER }}|g" \
               -e "s|__TAG__|${{ github.sha }}|g" \
               -e "s|__APPINSIGHTS_CONNECTION_STRING__|${{ steps.appinsights.outputs.CONNECTION_STRING }}|g" \
+              -e "s|__DATABASE_URL__|${{ steps.postgres.outputs.DATABASE_URL }}|g" \
               ./k8s/api-deployment.yaml | kubectl apply -f -
           sed -e "s|__ACR_LOGIN_SERVER__|${{ steps.acr_info.outputs.ACR_LOGIN_SERVER }}|g" \
               -e "s|__TAG__|${{ github.sha }}|g" \
